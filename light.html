@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2D 光的色散演示</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #1a1a1a;
+            color: #e5e5e5;
+            font-family: 'Segoe UI', sans-serif;
+            overflow: hidden;
+            touch-action: none;
+        }
+        canvas {
+            display: block;
+            margin: 0 auto;
+            background: radial-gradient(circle at center, #2a2a2a 0%, #111 100%);
+        }
+        .controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 300px;
+            background: rgba(30, 30, 30, 0.9);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            border: 1px solid #444;
+        }
+        .slider-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            margin-bottom: 5px;
+            color: #aaa;
+        }
+        input[type=range] {
+            width: 100%;
+            height: 4px;
+            background: #444;
+            border-radius: 2px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #3b82f6;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        input[type=range]::-webkit-slider-thumb:hover {
+            background: #60a5fa;
+        }
+        .value-display {
+            color: #fff;
+            font-family: monospace;
+        }
+        .toggle-btn {
+            background: #333;
+            border: 1px solid #555;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-right: 5px;
+        }
+        .toggle-btn.active {
+            background: #3b82f6;
+            border-color: #3b82f6;
+        }
+        #tip {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #666;
+            font-size: 14px;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="experimentCanvas"></canvas>
+
+    <div class="controls">
+        <h2 class="text-xl font-bold mb-4 text-white border-b border-gray-700 pb-2">棱镜色散实验</h2>
+        
+        <div class="slider-group">
+            <label>光源位置 (入射角) <span class="value-display" id="angleVal"></span></label>
+            <input type="range" id="sourceY" min="50" max="550" step="1">
+        </div>
+
+        <div class="slider-group">
+            <label>玻璃折射率 (n) <span class="value-display" id="riVal">1.50</span></label>
+            <input type="range" id="refractiveIndex" min="1.1" max="2.0" step="0.01" value="1.5">
+        </div>
+
+        <div class="slider-group">
+            <label>色散强度 <span class="value-display" id="dispersionVal">High</span></label>
+            <input type="range" id="dispersion" min="0.01" max="0.15" step="0.01" value="0.08">
+        </div>
+
+        <div class="slider-group">
+            <label>棱镜顶角 <span class="value-display" id="prismAngleVal">60°</span></label>
+            <input type="range" id="prismAngle" min="30" max="90" step="1" value="60">
+        </div>
+
+        <div class="flex gap-2 mt-4">
+            <button class="toggle-btn active" id="btnWhite">白光</button>
+            <button class="toggle-btn" id="btnRed">红光 (650nm)</button>
+            <button class="toggle-btn" id="btnBlue">蓝光 (450nm)</button>
+        </div>
+    </div>
+
+    <div id="tip">拖动左侧的白色手电筒来改变光线角度</div>
+
+    <script>
+        const canvas = document.getElementById('experimentCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // UI Elements
+        const sliderSourceY = document.getElementById('sourceY');
+        const sliderRI = document.getElementById('refractiveIndex');
+        const sliderDispersion = document.getElementById('dispersion');
+        const sliderPrismAngle = document.getElementById('prismAngle');
+        
+        // State
+        let width, height;
+        let sourcePos = { x: 50, y: 300 };
+        let isDragging = false;
+        let lightMode = 'white'; // white, red, blue
+
+        // Physics Params
+        let params = {
+            n: 1.5, // Base Refractive Index
+            dispersion: 0.08, // Coefficient for variation
+            prismTopAngle: 60 * Math.PI / 180,
+            prismSize: 200
+        };
+
+        // Wavelengths for simulation (nm) and their colors
+        const spectrum = [
+            { nm: 650, color: '#ff3333', label: 'Red' },    // Red
+            { nm: 610, color: '#ff7f00', label: 'Orange' }, // Orange
+            { nm: 580, color: '#ffff00', label: 'Yellow' }, // Yellow
+            { nm: 550, color: '#33ff33', label: 'Green' },  // Green
+            { nm: 470, color: '#00ffff', label: 'Cyan' },   // Cyan
+            { nm: 440, color: '#3333ff', label: 'Blue' },   // Blue
+            { nm: 410, color: '#8b00ff', label: 'Violet' }  // Violet
+        ];
+
+        function resize() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+            
+            // Adjust slider range based on height
+            sliderSourceY.max = height - 50;
+            draw();
+        }
+
+        // --- Physics Helpers ---
+
+        // Calculate refractive index for a specific wavelength based on base N and dispersion factor
+        // Simplified Cauchy equation model
+        function getRI(wavelengthNm) {
+            const refLambda = 550; // Reference Green
+            // Shorter wavelength (Blue/Violet) -> Higher Index
+            // Longer wavelength (Red) -> Lower Index
+            const diff = (refLambda - wavelengthNm) / 100;
+            return params.n + diff * params.dispersion;
+        }
+
+        // Vector operations
+        const vec = {
+            add: (v1, v2) => ({ x: v1.x + v2.x, y: v1.y + v2.y }),
+            sub: (v1, v2) => ({ x: v1.x - v2.x, y: v1.y - v2.y }),
+            mul: (v, s) => ({ x: v.x * s, y: v.y * s }),
+            dot: (v1, v2) => v1.x * v2.x + v1.y * v2.y,
+            cross: (v1, v2) => v1.x * v2.y - v1.y * v2.x,
+            mag: (v) => Math.sqrt(v.x * v.x + v.y * v.y),
+            norm: (v) => {
+                const m = Math.sqrt(v.x * v.x + v.y * v.y);
+                return m === 0 ? { x: 0, y: 0 } : { x: v.x / m, y: v.y / m };
+            }
+        };
+
+        // Line Segment Intersection
+        // Ray: P + t*D
+        // Segment: A to B
+        function intersect(rayOrigin, rayDir, segA, segB) {
+            const v1 = vec.sub(rayOrigin, segA);
+            const v2 = vec.sub(segB, segA);
+            const v3 = { x: -rayDir.y, y: rayDir.x }; // Perpendicular to ray
+
+            const dot = vec.dot(v2, v3);
+            if (Math.abs(dot) < 0.000001) return null;
+
+            const t1 = vec.cross(v2, v1) / dot;
+            const t2 = vec.dot(v1, v3) / dot;
+
+            if (t1 >= 0 && (t2 >= 0 && t2 <= 1)) {
+                return {
+                    point: vec.add(rayOrigin, vec.mul(rayDir, t1)),
+                    dist: t1,
+                    normal: { x: -v2.y, y: v2.x } // Unnormalized normal
+                };
+            }
+            return null;
+        }
+
+        // Snell's Law Refraction
+        // I: Incident vector (normalized)
+        // N: Normal vector (normalized)
+        // n1, n2: Refractive indices
+        function refract(I, N, n1, n2) {
+            const eta = n1 / n2;
+            let cosI = -vec.dot(N, I);
+            
+            // Adjust normal if coming from inside
+            let normal = N;
+            if (cosI < 0) {
+                cosI = -cosI;
+                normal = vec.mul(N, -1);
+            }
+
+            const k = 1.0 - eta * eta * (1.0 - cosI * cosI);
+            
+            if (k < 0) {
+                // Total Internal Reflection (TIR)
+                return null; 
+            } else {
+                // Refraction vector
+                return vec.add(vec.mul(I, eta), vec.mul(normal, eta * cosI - Math.sqrt(k)));
+            }
+        }
+
+        // --- Drawing ---
+
+        function drawPrism(center, sideLen, topAngle) {
+            // Calculate vertices of isosceles triangle
+            // Center is roughly centroid, but let's fix the base for stability
+            
+            const height = sideLen * Math.cos(topAngle / 2);
+            const halfBase = sideLen * Math.sin(topAngle / 2);
+
+            const top = { x: center.x, y: center.y - height / 2 };
+            const bottomLeft = { x: center.x - halfBase, y: center.y + height / 2 };
+            const bottomRight = { x: center.x + halfBase, y: center.y + height / 2 };
+
+            // Draw shape
+            ctx.fillStyle = 'rgba(200, 230, 255, 0.15)';
+            ctx.strokeStyle = 'rgba(200, 230, 255, 0.8)';
+            ctx.lineWidth = 2;
+            
+            ctx.beginPath();
+            ctx.moveTo(top.x, top.y);
+            ctx.lineTo(bottomRight.x, bottomRight.y);
+            ctx.lineTo(bottomLeft.x, bottomLeft.y);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            return [
+                { a: top, b: bottomRight },
+                { a: bottomRight, b: bottomLeft },
+                { a: bottomLeft, b: top }
+            ];
+        }
+
+        function drawLightSource() {
+            // Flashlight body
+            ctx.save();
+            ctx.translate(sourcePos.x, sourcePos.y);
+            
+            // Calculate angle to prism center
+            const prismCenter = { x: width / 2, y: height / 2 };
+            const angle = Math.atan2(prismCenter.y - sourcePos.y, prismCenter.x - sourcePos.x);
+            ctx.rotate(angle);
+
+            // Draw flashlight
+            ctx.fillStyle = '#ddd';
+            ctx.beginPath();
+            ctx.roundRect(-20, -10, 30, 20, 4); // Handle
+            ctx.fill();
+            
+            ctx.fillStyle = '#999';
+            ctx.beginPath();
+            ctx.moveTo(10, -10);
+            ctx.lineTo(20, -15);
+            ctx.lineTo(20, 15);
+            ctx.lineTo(10, 10);
+            ctx.fill();
+
+            // Glow
+            ctx.beginPath();
+            ctx.moveTo(20, -15);
+            ctx.lineTo(20, 15);
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Interaction ring
+            if (isDragging) {
+                ctx.beginPath();
+                ctx.arc(0, 0, 30, 0, Math.PI * 2);
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+
+            ctx.restore();
+            
+            return {
+                origin: { x: sourcePos.x, y: sourcePos.y },
+                dir: { x: Math.cos(angle), y: Math.sin(angle) } // Roughly aiming at center
+            };
+        }
+
+        function drawRayPath(origin, dir, segments, wavelengthData) {
+            const n_air = 1.0;
+            const n_glass = getRI(wavelengthData.nm);
+
+            let currentPos = origin;
+            let currentDir = dir;
+            let maxBounces = 4;
+            let path = [currentPos];
+            
+            // To prevent self-intersection immediately
+            let ignoreSegIndex = -1; 
+
+            for (let i = 0; i < maxBounces; i++) {
+                let closest = null;
+                let hitSegIndex = -1;
+
+                // Check intersection with all prism sides
+                for (let j = 0; j < segments.length; j++) {
+                    if (j === ignoreSegIndex) continue;
+
+                    const hit = intersect(currentPos, currentDir, segments[j].a, segments[j].b);
+                    if (hit) {
+                        if (!closest || hit.dist < closest.dist) {
+                            closest = hit;
+                            hitSegIndex = j;
+                        }
+                    }
+                }
+
+                if (closest) {
+                    path.push(closest.point);
+                    
+                    // Determine entering or exiting
+                    // Simple heuristic: even index hit = entering, odd = exiting? 
+                    // Better: check normal direction or track current medium
+                    
+                    // If i=0, we are in air entering glass. n1=air, n2=glass
+                    // If i=1, we are inside glass hitting edge. n1=glass, n2=air
+                    
+                    let n1, n2;
+                    if (i === 0) { // Air -> Glass
+                        n1 = n_air; n2 = n_glass;
+                    } else { // Glass -> Air
+                        n1 = n_glass; n2 = n_air;
+                    }
+
+                    const normal = vec.norm(closest.normal);
+                    const refractedDir = refract(currentDir, normal, n1, n2);
+
+                    if (refractedDir) {
+                        currentDir = vec.norm(refractedDir);
+                        currentPos = closest.point; // Next start point
+                        ignoreSegIndex = hitSegIndex;
+                    } else {
+                        // TIR (Total Internal Reflection)
+                        // R = I - 2(I.N)N
+                        // Normalize normal to face incident
+                        let nFixed = normal;
+                        if (vec.dot(currentDir, nFixed) > 0) nFixed = vec.mul(nFixed, -1);
+                        
+                        const reflectDir = vec.sub(currentDir, vec.mul(nFixed, 2 * vec.dot(currentDir, nFixed)));
+                        
+                        currentDir = vec.norm(reflectDir);
+                        currentPos = closest.point;
+                        ignoreSegIndex = hitSegIndex;
+                        
+                        // Break after reflection to simplify visual (or continue for internal bounces)
+                        // Let's create a short visualization for TIR
+                    }
+
+                } else {
+                    // Ray goes to infinity
+                    path.push(vec.add(currentPos, vec.mul(currentDir, 1000)));
+                    break;
+                }
+            }
+
+            // Draw the path
+            ctx.beginPath();
+            ctx.moveTo(path[0].x, path[0].y);
+            for (let k = 1; k < path.length; k++) {
+                ctx.lineTo(path[k].x, path[k].y);
+            }
+            
+            ctx.strokeStyle = wavelengthData.color;
+            ctx.lineWidth = lightMode === 'white' ? 2 : 3;
+            ctx.globalAlpha = lightMode === 'white' ? 0.6 : 0.9;
+            // Add blending to make colors mix nicely
+            ctx.globalCompositeOperation = 'screen';
+            ctx.stroke();
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.globalAlpha = 1.0;
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, width, height);
+
+            // 1. Draw Prism
+            const prismCenter = { x: width / 2, y: height / 2 };
+            const segments = drawPrism(prismCenter, params.prismSize, params.prismTopAngle);
+
+            // 2. Draw Source
+            const light = drawLightSource();
+
+            // 3. Trace Rays
+            let wavesToDraw = [];
+            if (lightMode === 'white') {
+                wavesToDraw = spectrum;
+                // Draw a white beam segment before the prism for better visual
+                // Actually, just drawing all colors starting from source will look white due to blending
+            } else if (lightMode === 'red') {
+                wavesToDraw = [spectrum[0]];
+            } else if (lightMode === 'blue') {
+                wavesToDraw = [spectrum[5]];
+            }
+
+            wavesToDraw.forEach(wave => {
+                drawRayPath(light.origin, light.dir, segments, wave);
+            });
+
+            // Draw white core for the beam before it hits prism (Enhancement)
+            if (lightMode === 'white') {
+                ctx.beginPath();
+                ctx.moveTo(light.origin.x, light.origin.y);
+                // Find first hit for white line
+                let closest = null;
+                for (let seg of segments) {
+                    const hit = intersect(light.origin, light.dir, seg.a, seg.b);
+                    if (hit && (!closest || hit.dist < closest.dist)) closest = hit;
+                }
+                if (closest) {
+                    ctx.lineTo(closest.point.x, closest.point.y);
+                    ctx.strokeStyle = 'rgba(255,255,255, 0.5)';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
+            }
+        }
+
+        // --- Inputs ---
+
+        function updateParams() {
+            params.n = parseFloat(sliderRI.value);
+            params.dispersion = parseFloat(sliderDispersion.value);
+            params.prismTopAngle = parseFloat(sliderPrismAngle.value) * Math.PI / 180;
+            sourcePos.y = parseInt(sliderSourceY.value);
+            
+            // Update labels
+            document.getElementById('riVal').textContent = params.n.toFixed(2);
+            document.getElementById('angleVal').textContent = ""; // Dynamic based on calc is complex, leaving blank or simple
+            document.getElementById('dispersionVal').textContent = params.dispersion.toFixed(3);
+            document.getElementById('prismAngleVal').textContent = sliderPrismAngle.value + "°";
+
+            draw();
+        }
+
+        // Interaction
+        canvas.addEventListener('mousedown', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            if (Math.hypot(x - sourcePos.x, y - sourcePos.y) < 40) {
+                isDragging = true;
+                canvas.style.cursor = 'grabbing';
+            }
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                const rect = canvas.getBoundingClientRect();
+                sourcePos.y = e.clientY - rect.top;
+                // Update slider to match drag
+                sliderSourceY.value = sourcePos.y;
+                draw();
+            }
+        });
+
+        window.addEventListener('mouseup', () => {
+            isDragging = false;
+            canvas.style.cursor = 'default';
+        });
+
+        // Sliders
+        sliderSourceY.addEventListener('input', updateParams);
+        sliderRI.addEventListener('input', updateParams);
+        sliderDispersion.addEventListener('input', updateParams);
+        sliderPrismAngle.addEventListener('input', updateParams);
+
+        // Buttons
+        document.getElementById('btnWhite').onclick = (e) => setMode('white', e.target);
+        document.getElementById('btnRed').onclick = (e) => setMode('red', e.target);
+        document.getElementById('btnBlue').onclick = (e) => setMode('blue', e.target);
+
+        function setMode(mode, btn) {
+            lightMode = mode;
+            document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            draw();
+        }
+
+        window.addEventListener('resize', resize);
+        
+        // Init
+        resize();
+        updateParams();
+
+    </script>
+</body>
+</html>
