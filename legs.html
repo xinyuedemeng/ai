@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>鸡兔同笼探索器</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        .animal-icon { font-size: 2rem; transition: all 0.3s; }
+        .fade-in { animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-blue-50 flex items-center justify-center min-h-screen">
+
+<div id="root"></div>
+
+<script type="text/babel">
+    function ChickenRabbitSolver() {
+        const TOTAL_HEADS = 10;
+        const [rabbits, setRabbits] = React.useState(0);
+        
+        // 自动计算鸡的数量（因为头数固定）
+        const chickens = TOTAL_HEADS - rabbits;
+        
+        // 计算当前的脚
+        const currentLegs = (chickens * 2) + (rabbits * 4);
+
+        return (
+            <div class="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full border-4 border-blue-200 fade-in">
+                <h1 class="text-2xl font-bold text-center text-blue-600 mb-6">🐰 鸡兔同笼探索器 🐔</h1>
+                
+                <div class="bg-yellow-50 p-4 rounded-lg mb-6 text-center border border-yellow-200">
+                    <p class="text-gray-600 text-sm">题目设定：笼子里一共有 <strong>{TOTAL_HEADS}</strong> 个头</p>
+                </div>
+
+                {/* 视觉展示区 */}
+                <div class="flex justify-center gap-4 mb-8 min-h-[60px] flex-wrap">
+                    {Array.from({length: chickens}).map((_, i) => (
+                        <span key={`c-${i}`} className="animal-icon">🐔</span>
+                    ))}
+                    {Array.from({length: rabbits}).map((_, i) => (
+                        <span key={`r-${i}`} className="animal-icon">🐰</span>
+                    ))}
+                </div>
+
+                {/* 交互控制区 */}
+                <div class="mb-8">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        拖动滑块调整兔子的数量:
+                    </label>
+                    <input 
+                        type="range" 
+                        min="0" 
+                        max={TOTAL_HEADS} 
+                        value={rabbits} 
+                        onChange={(e) => setRabbits(parseInt(e.target.value))}
+                        class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                    />
+                    <div class="flex justify-between text-sm text-gray-500 mt-2">
+                        <span>全是鸡 (0兔)</span>
+                        <span>全是兔 ({TOTAL_HEADS}兔)</span>
+                    </div>
+                </div>
+
+                {/* 实时反馈数据 */}
+                <div class="grid grid-cols-3 gap-4 text-center">
+                    <div class="p-3 bg-gray-100 rounded-lg">
+                        <div class="text-xs text-gray-500">当前鸡</div>
+                        <div class="text-xl font-bold text-orange-500">{chickens} 只</div>
+                    </div>
+                    <div class="p-3 bg-gray-100 rounded-lg">
+                        <div class="text-xs text-gray-500">当前兔</div>
+                        <div class="text-xl font-bold text-blue-500">{rabbits} 只</div>
+                    </div>
+                    <div class="p-3 bg-green-100 rounded-lg border border-green-200">
+                        <div class="text-xs text-green-600">总脚数</div>
+                        <div class="text-2xl font-bold text-green-700">{currentLegs}</div>
+                        <div class="text-[10px] text-green-600">({chickens}×2 + {rabbits}×4)</div>
+                    </div>
+                </div>
+
+                <div class="mt-6 text-center text-gray-400 text-xs">
+                    * 观察：每增加一只兔子，总脚数会增加多少？
+                </div>
+            </div>
+        );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<ChickenRabbitSolver />);
+</script>
+</body>
+</html>
