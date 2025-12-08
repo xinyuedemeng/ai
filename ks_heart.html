@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BioSense ECG Simulator</title>
+    
+    <!-- Tailwind CSS (CDN用于演示是正常的，忽略控制台关于production的警告) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Vue 3 Production Build (使用 .prod.js 消除开发版本警告) -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.prod.js"></script>
+    
+    <!-- Google Fonts (Digital) -->
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* v-cloak 防止Vue加载前的花屏，但如果Vue挂了会导致一直蓝屏 */
+        [v-cloak] { display: none !important; }
+
+        body {
+            background-color: #0f172a;
+            color: #e2e8f0;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden; /* 防止滚动条 */
+        }
+        
+        .font-digital {
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        /* === 示波器屏幕风格 === */
+        .scope-screen {
+            background-color: #000510;
+            background-image: 
+                linear-gradient(rgba(6, 182, 212, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(6, 182, 212, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+            box-shadow: inset 0 0 60px rgba(0,0,0,0.9);
+            border: 1px solid #1e293b;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* 扫描线光效 */
+        .scan-line {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: rgba(16, 185, 129, 0.8);
+            box-shadow: 0 0 15px 2px rgba(16, 185, 129, 0.6);
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* === 自定义滑块 (Range Input) === */
+        input[type=range] {
+            -webkit-appearance: none;
+            background: transparent;
+            height: 24px;
+            cursor: pointer;
+            width: 100%;
+        }
+        
+        input[type=range]:focus {
+            outline: none;
+        }
+
+        /* 轨道 */
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 6px;
+            border-radius: 4px;
+            background: #334155;
+            transition: background 0.2s;
+        }
+        
+        /* 滑块头 */
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 18px;
+            width: 18px;
+            border-radius: 50%;
+            background: #f8fafc;
+            border: 2px solid #0f172a;
+            margin-top: -6px; 
+            box-shadow: 0 0 10px rgba(255,255,255,0.5);
+            transition: transform 0.1s;
+        }
+        
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            background: #38bdf8;
+        }
+
+        /* === 玻璃拟态面板 === */
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+        }
+
+        /* === 心跳动画 === */
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+        
+        .heart-beat-dot {
+            transition: all 0.1s;
+        }
+        .heart-beat-ring {
+            animation: pulse-ring 1s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+    </style>
+</head>
+<body>
+    <div id="app" v-cloak class="h-screen flex flex-col p-4 gap-4 max-w-[1600px] mx-auto">
+        
+        <!-- 顶部 Header -->
+        <header class="flex justify-between items-center px-4 py-2">
+            <div class="flex items-center gap-3">
+                <div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></div>
+                <h1 class="text-xl font-bold tracking-wider text-slate-100">
+                    BIOSENSE <span class="text-emerald-400 font-light">SIMULATOR</span>
+                </h1>
+            </div>
+            <div class="flex items-center gap-6 text-xs text-slate-400 font-digital">
+                <div class="flex flex-col items-end">
+                    <span>SYSTEM TIME</span>
+                    <span class="text-slate-200">{{ timeString }}</span>
+                </div>
+                <div class="h-6 w-[1px] bg-slate-700"></div>
+                <div class="flex flex-col items-end">
+                    <span>POWER DRAW</span>
+                    <span :class="isSleeping ? 'text-blue-400' : 'text-emerald-400'">{{ powerConsumption }} μW</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- 主布局：左侧控制，右侧显示 -->
+        <main class="flex-1 flex gap-6 overflow-hidden min-h-0">
+            
+            <!-- 左侧：控制台 (Interactive Panel) -->
+            <aside class="w-[360px] flex flex-col gap-4 overflow-y-auto pr-1 pb-4">
+                
+                <!-- 1. 核心状态卡片 -->
+                <div class="glass-panel p-6 relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 p-3 opacity-20">
+                        <svg class="w-16 h-16 text-emerald-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                    </div>
+                    
+                    <div class="relative z-10">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-widest">Heart Rate</label>
+                        <div class="flex items-baseline mt-2">
+                            <span class="text-5xl font-digital font-bold text-white tracking-tighter">{{ heartRate }}</span>
+                            <span class="ml-2 text-sm text-slate-400">BPM</span>
+                        </div>
+                        
+                        <!-- 心率滑块 -->
+                        <div class="mt-6">
+                            <div class="flex justify-between text-[10px] text-slate-500 mb-1 font-digital">
+                                <span>60</span>
+                                <span>120</span>
+                                <span>180</span>
+                            </div>
+                            <!-- 渐变背景条 -->
+                            <div class="relative h-2 rounded-full w-full bg-slate-700 overflow-hidden">
+                                <div class="absolute top-0 left-0 h-full w-full" 
+                                     style="background: linear-gradient(90deg, #3b82f6 0%, #22c55e 30%, #eab308 70%, #ef4444 100%); opacity: 0.5;"></div>
+                                <!-- 遮罩，根据滑块位置显示颜色 -->
+                            </div>
+                            <input type="range" v-model.number="heartRate" min="40" max="180" step="1" class="absolute -mt-3 w-[86%] z-20 opacity-0 cursor-pointer">
+                            <!-- 显示出来的自定义滑块 -->
+                            <input type="range" v-model.number="heartRate" min="40" max="180" step="1" class="-mt-4 relative z-10">
+                        </div>
+
+                        <!-- 状态标签 -->
+                        <div class="mt-4 flex gap-2">
+                             <span class="px-2 py-1 rounded text-[10px] font-bold border border-slate-600 bg-slate-800/50"
+                                   :class="heartStatusColor">
+                                {{ heartStatusText }}
+                             </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. 信号调节 (Knobs & Switches) -->
+                <div class="glass-panel p-6 space-y-6">
+                    <div class="flex items-center justify-between">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-widest">Signal Gain</label>
+                        <span class="font-digital text-emerald-400">{{ gain }}x</span>
+                    </div>
+                    
+                    <input type="range" v-model.number="gain" min="50" max="720" step="10" 
+                           class="w-full accent-emerald-500">
+
+                    <div class="h-[1px] bg-slate-700/50 my-2"></div>
+
+                    <!-- 拨动开关组 -->
+                    <div class="space-y-4">
+                        <!-- 滤波器开关 -->
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="text-sm font-medium text-slate-200">DSP Filter</div>
+                                <div class="text-[10px] text-slate-500">Low-pass 40Hz</div>
+                            </div>
+                            <button @click="filterEnabled = !filterEnabled" 
+                                    class="w-12 h-6 rounded-full p-1 transition-colors duration-300 relative"
+                                    :class="filterEnabled ? 'bg-emerald-600' : 'bg-slate-700'">
+                                <div class="w-4 h-4 rounded-full bg-white shadow-md transform transition-transform duration-300"
+                                     :class="filterEnabled ? 'translate-x-6' : 'translate-x-0'"></div>
+                            </button>
+                        </div>
+
+                        <!-- 干扰开关 -->
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="text-sm font-medium text-slate-200">Noise Injection</div>
+                                <div class="text-[10px] text-slate-500">50Hz Mains</div>
+                            </div>
+                            <button @click="hasInterference = !hasInterference" 
+                                    class="w-12 h-6 rounded-full p-1 transition-colors duration-300 relative"
+                                    :class="hasInterference ? 'bg-rose-600' : 'bg-slate-700'">
+                                <div class="w-4 h-4 rounded-full bg-white shadow-md transform transition-transform duration-300"
+                                     :class="hasInterference ? 'translate-x-6' : 'translate-x-0'"></div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. 场景预设 (单选按钮组) -->
+                <div class="glass-panel p-4">
+                    <label class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 block">Quick Scenarios</label>
+                    <div class="grid grid-cols-3 gap-2 bg-slate-800/50 p-1 rounded-lg">
+                        <button v-for="s in scenarios" :key="s.id"
+                                @click="applyScenario(s.id)"
+                                class="py-2 text-xs rounded-md transition-all font-medium"
+                                :class="currentScenario === s.id ? 'bg-slate-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'">
+                            {{ s.label }}
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 4. 电源模式 -->
+                <button @click="isSleeping = !isSleeping"
+                        class="glass-panel p-4 flex items-center justify-center gap-3 transition-all active:scale-95 hover:bg-slate-800/80 border-2"
+                        :class="isSleeping ? 'border-blue-500/50 text-blue-400' : 'border-transparent text-slate-300'">
+                    <span class="text-lg">{{ isSleeping ? '⚡' : '💤' }}</span>
+                    <span class="font-bold">{{ isSleeping ? 'WAKE UP CHIP' : 'ENTER SLEEP MODE' }}</span>
+                </button>
+
+            </aside>
+
+            <!-- 右侧：ECG 示波器 (Visual Output) -->
+            <section class="flex-1 flex flex-col min-w-0">
+                <div class="flex-1 scope-screen rounded-2xl relative" ref="scopeContainer">
+                    <!-- Canvas -->
+                    <canvas ref="canvas" class="w-full h-full block z-0"></canvas>
+                    
+                    <!-- 扫描线 (HTML Overlay) -->
+                    <div class="scan-line" :style="{ left: scanX + 'px' }"></div>
+
+                    <!-- 屏幕上的 OSD 信息 -->
+                    <div class="absolute top-6 left-6 z-20 font-digital pointer-events-none select-none">
+                        <div class="text-emerald-400 text-lg mb-1 tracking-wider">CH1 [ANALOG]</div>
+                        <div class="flex flex-col gap-1 text-xs text-slate-400/80">
+                            <div>SCALE: <span class="text-white">{{ (2000/gain).toFixed(1) }}</span> mV/div</div>
+                            <div>OFFSET: <span class="text-white">0.00</span> mV</div>
+                            <div>SPEED: <span class="text-white">25</span> mm/s</div>
+                        </div>
+                    </div>
+
+                    <!-- 警告标志 -->
+                    <div v-if="hasInterference && !isSleeping" 
+                         class="absolute top-6 right-6 z-20 bg-rose-900/40 border border-rose-500/50 text-rose-400 px-3 py-1 rounded text-xs font-bold animate-pulse">
+                        ⚠ NOISE DETECTED
+                    </div>
+                    
+                    <div v-if="isSleeping" 
+                         class="absolute inset-0 flex items-center justify-center z-30 bg-black/60 backdrop-blur-sm">
+                        <div class="text-center">
+                            <div class="text-blue-400 text-4xl font-bold mb-2">STANDBY</div>
+                            <div class="text-blue-500/60 font-digital">ULTRA-LOW POWER MODE</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 底部图例/说明 -->
+                <div class="mt-3 flex justify-between items-center px-2 text-slate-500 text-xs">
+                    <div class="flex gap-4">
+                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Signal</span>
+                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-rose-500"></span> Noise</span>
+                    </div>
+                    <div>Real-time Render: 60 FPS</div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // 简单的安全检查：如果Vue没有成功加载，移除v-cloak防止一直蓝屏
+        setTimeout(() => {
+            if (typeof Vue === 'undefined') {
+                document.getElementById('app').removeAttribute('v-cloak');
+                alert("Vue.js 加载失败，请检查网络连接");
+            }
+        }, 3000);
+
+        const { createApp, ref, computed, onMounted, onUnmounted, watch } = Vue;
+
+        createApp({
+            setup() {
+                // --- State ---
+                const heartRate = ref(75);
+                const gain = ref(200);
+                const isSleeping = ref(false);
+                const filterEnabled = ref(true);
+                const hasInterference = ref(false);
+                const currentScenario = ref('custom');
+                const timeString = ref('00:00:00');
+
+                const scenarios = [
+                    { id: 'normal', label: 'Normal' },
+                    { id: 'tachy', label: 'Tachycardia' },
+                    { id: 'noise', label: 'Noisy Env' }
+                ];
+
+                // --- Computed ---
+                const heartStatusText = computed(() => {
+                    if (heartRate.value < 60) return 'BRADYCARDIA';
+                    if (heartRate.value > 100) return 'TACHYCARDIA';
+                    return 'NORMAL RHYTHM';
+                });
+
+                const heartStatusColor = computed(() => {
+                    if (heartRate.value < 60) return 'text-blue-400 border-blue-500/30';
+                    if (heartRate.value > 100) return 'text-rose-400 border-rose-500/30';
+                    return 'text-emerald-400 border-emerald-500/30';
+                });
+
+                const powerConsumption = computed(() => {
+                    if (isSleeping.value) return 0.1;
+                    let p = 120 + (gain.value/1000) * 10; 
+                    if (filterEnabled.value) p += 15;
+                    // 心率越高，功耗微增
+                    p += (heartRate.value / 180) * 5;
+                    return p.toFixed(1);
+                });
+
+                // --- Methods ---
+                const applyScenario = (id) => {
+                    currentScenario.value = id;
+                    isSleeping.value = false;
+                    switch(id) {
+                        case 'normal':
+                            heartRate.value = 70;
+                            gain.value = 200;
+                            filterEnabled.value = true;
+                            hasInterference.value = false;
+                            break;
+                        case 'tachy':
+                            heartRate.value = 135;
+                            gain.value = 200;
+                            filterEnabled.value = true;
+                            hasInterference.value = false;
+                            break;
+                        case 'noise':
+                            heartRate.value = 80;
+                            gain.value = 400; // 放大看噪声
+                            filterEnabled.value = false; // 关闭滤波
+                            hasInterference.value = true;
+                            break;
+                    }
+                };
+
+                // Update scenario to 'custom' if user touches sliders
+                watch([heartRate, gain, filterEnabled, hasInterference], () => {
+                    // 简单的去抖动逻辑或者是直接设为 custom
+                });
+                
+                // Clock
+                setInterval(() => {
+                    const now = new Date();
+                    timeString.value = now.toLocaleTimeString('en-GB');
+                }, 1000);
+
+                // --- Canvas Logic ---
+                const canvas = ref(null);
+                const scopeContainer = ref(null);
+                const scanX = ref(0);
+                
+                let ctx = null;
+                let animId = null;
+                let w = 0, h = 0;
+                
+                // Signal vars
+                let phase = 0;
+                let bufferY = []; 
+
+                const draw = () => {
+                    if (!ctx) return;
+                    
+                    const speed = 200; // px per second
+                    const dt = 1/60;
+                    const dx = speed * dt;
+                    
+                    const prevX = scanX.value;
+                    scanX.value += dx;
+                    if (scanX.value >= w) {
+                        scanX.value = 0;
+                    }
+
+                    // Erase ahead
+                    const eraseW = 50;
+                    if (scanX.value + eraseW > w) {
+                        ctx.clearRect(scanX.value, 0, w - scanX.value, h);
+                        ctx.clearRect(0, 0, (scanX.value + eraseW) % w, h);
+                    } else {
+                        ctx.clearRect(scanX.value, 0, eraseW, h);
+                    }
+
+                    // Calculate Signal
+                    let val = 0;
+                    if (!isSleeping.value) {
+                        // Phase update
+                        const period = 60 / heartRate.value;
+                        phase += dt / period;
+                        if (phase >= 1.0) phase -= 1.0;
+
+                        // ECG Math
+                        const g = (x, p, width, height) => {
+                            let d = Math.abs(x - p);
+                            if (d > 0.5) d = 1.0 - d;
+                            return height * Math.exp(-Math.pow(d, 2) / (2 * width * width));
+                        };
+                        
+                        // P-Q-R-S-T
+                        val += g(phase, 0.15, 0.02, 0.15);
+                        val -= g(phase, 0.22, 0.005, 0.15);
+                        val += g(phase, 0.25, 0.005, 1.2); // R Peak
+                        val -= g(phase, 0.28, 0.005, 0.25);
+                        val += g(phase, 0.45, 0.04, 0.20);
+                        
+                        // Noise
+                        const now = performance.now()/1000;
+                        let noise = (Math.random()-0.5)*0.02;
+                        
+                        if (hasInterference.value) {
+                            noise += Math.sin(now * 50 * Math.PI * 2) * 0.1; // 50Hz strong
+                            if (Math.random() > 0.98) noise += (Math.random()-0.5)*0.2; // artifacts
+                        }
+
+                        if (filterEnabled.value) {
+                            noise *= 0.1; // Filter reduces noise
+                        }
+                        
+                        val += noise;
+                    }
+
+                    // Map to Y
+                    const pxPerMv = 0.5; // base scale
+                    const amplitude = val * gain.value * pxPerMv;
+                    const y = (h / 2) - amplitude;
+
+                    // Draw Line
+                    ctx.beginPath();
+                    // 动态颜色：根据信号质量
+                    ctx.strokeStyle = hasInterference.value && !filterEnabled.value ? '#fb7185' : '#10b981'; // Rose or Emerald
+                    ctx.lineWidth = filterEnabled.value ? 2 : 1;
+                    ctx.shadowBlur = filterEnabled.value ? 4 : 0;
+                    ctx.shadowColor = ctx.strokeStyle;
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+
+                    if (scanX.value > prevX) {
+                        const lastY = bufferY[Math.floor(prevX)] || h/2;
+                        ctx.moveTo(prevX, lastY);
+                        ctx.lineTo(scanX.value, y);
+                    } else {
+                        ctx.moveTo(scanX.value, y);
+                    }
+                    ctx.stroke();
+                    ctx.shadowBlur = 0; // reset
+
+                    // Buffer
+                    const startI = Math.floor(prevX);
+                    const endI = Math.floor(scanX.value);
+                    for(let i=startI; i<=endI; i++) {
+                        if (i >=0 && i < w) bufferY[i] = y;
+                    }
+
+                    animId = requestAnimationFrame(draw);
+                };
+
+                const resize = () => {
+                    if (scopeContainer.value && canvas.value) {
+                        w = scopeContainer.value.clientWidth;
+                        h = scopeContainer.value.clientHeight;
+                        canvas.value.width = w;
+                        canvas.value.height = h;
+                        bufferY = new Array(w).fill(h/2);
+                        scanX.value = 0;
+                    }
+                };
+
+                onMounted(() => {
+                    ctx = canvas.value.getContext('2d');
+                    window.addEventListener('resize', resize);
+                    resize();
+                    animId = requestAnimationFrame(draw);
+                });
+
+                onUnmounted(() => {
+                    window.removeEventListener('resize', resize);
+                    cancelAnimationFrame(animId);
+                });
+
+                return {
+                    // State
+                    heartRate, gain, isSleeping, filterEnabled, hasInterference, 
+                    scenarios, currentScenario, timeString,
+                    // Computed
+                    heartStatusText, heartStatusColor, powerConsumption,
+                    // Refs
+                    canvas, scopeContainer, scanX,
+                    // Methods
+                    applyScenario
+                };
+            }
+        }).mount('#app'); // 确保这里挂载了
+    </script>
+</body>
+</html>
