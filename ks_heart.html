@@ -5,17 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BioSense ECG Simulator</title>
     
-    <!-- Tailwind CSS (CDN用于演示是正常的，忽略控制台关于production的警告) -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Vue 3 Production Build (使用 .prod.js 消除开发版本警告) -->
+    <!-- Vue 3 Production Build -->
     <script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.prod.js"></script>
     
     <!-- Google Fonts (Digital) -->
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Inter:wght@400;600&display=swap" rel="stylesheet">
     
     <style>
-        /* v-cloak 防止Vue加载前的花屏，但如果Vue挂了会导致一直蓝屏 */
+        /* v-cloak 防止Vue加载前的花屏 */
         [v-cloak] { display: none !important; }
 
         body {
@@ -101,19 +101,6 @@
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 16px;
         }
-
-        /* === 心跳动画 === */
-        @keyframes pulse-ring {
-            0% { transform: scale(0.8); opacity: 0.5; }
-            100% { transform: scale(2); opacity: 0; }
-        }
-        
-        .heart-beat-dot {
-            transition: all 0.1s;
-        }
-        .heart-beat-ring {
-            animation: pulse-ring 1s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
-        }
     </style>
 </head>
 <body>
@@ -170,9 +157,7 @@
                             <div class="relative h-2 rounded-full w-full bg-slate-700 overflow-hidden">
                                 <div class="absolute top-0 left-0 h-full w-full" 
                                      style="background: linear-gradient(90deg, #3b82f6 0%, #22c55e 30%, #eab308 70%, #ef4444 100%); opacity: 0.5;"></div>
-                                <!-- 遮罩，根据滑块位置显示颜色 -->
                             </div>
-                            <input type="range" v-model.number="heartRate" min="40" max="180" step="1" class="absolute -mt-3 w-[86%] z-20 opacity-0 cursor-pointer">
                             <!-- 显示出来的自定义滑块 -->
                             <input type="range" v-model.number="heartRate" min="40" max="180" step="1" class="-mt-4 relative z-10">
                         </div>
@@ -231,7 +216,7 @@
                     </div>
                 </div>
 
-                <!-- 3. 场景预设 (单选按钮组) -->
+                <!-- 3. 场景预设 -->
                 <div class="glass-panel p-4">
                     <label class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 block">Quick Scenarios</label>
                     <div class="grid grid-cols-3 gap-2 bg-slate-800/50 p-1 rounded-lg">
@@ -244,26 +229,43 @@
                     </div>
                 </div>
 
-                <!-- 4. 电源模式 -->
-                <button @click="isSleeping = !isSleeping"
-                        class="glass-panel p-4 flex items-center justify-center gap-3 transition-all active:scale-95 hover:bg-slate-800/80 border-2"
-                        :class="isSleeping ? 'border-blue-500/50 text-blue-400' : 'border-transparent text-slate-300'">
-                    <span class="text-lg">{{ isSleeping ? '⚡' : '💤' }}</span>
-                    <span class="font-bold">{{ isSleeping ? 'WAKE UP CHIP' : 'ENTER SLEEP MODE' }}</span>
-                </button>
+                <!-- 4. 电源/演示模式控制 (改为 Toggle Switch) -->
+                <div class="glass-panel p-4 flex items-center justify-between border-2 transition-all"
+                     :class="isSleeping ? 'border-blue-500/30 bg-blue-900/10' : 'border-emerald-500/30 bg-emerald-900/10'">
+                    
+                    <div class="flex flex-col">
+                        <span class="text-sm font-bold" :class="isSleeping ? 'text-blue-400' : 'text-emerald-400'">
+                            {{ isSleeping ? 'SYSTEM SLEEP' : 'SYSTEM ACTIVE' }}
+                        </span>
+                        <span class="text-[10px] text-slate-400 font-digital">
+                            {{ isSleeping ? 'WAITING FOR WAKE...' : 'SIMULATION RUNNING' }}
+                        </span>
+                    </div>
+
+                    <!-- 主电源开关 -->
+                    <button @click="isSleeping = !isSleeping" 
+                            class="w-14 h-8 rounded-full p-1 transition-colors duration-300 relative border border-slate-600"
+                            :class="!isSleeping ? 'bg-emerald-600 border-emerald-500' : 'bg-slate-800'">
+                        <!-- 图标容器 -->
+                        <div class="w-6 h-6 rounded-full bg-white shadow-md transform transition-transform duration-300 flex items-center justify-center text-xs font-bold"
+                             :class="!isSleeping ? 'translate-x-6 text-emerald-600' : 'translate-x-0 text-slate-600'">
+                             {{ !isSleeping ? '⚡' : '⏻' }}
+                        </div>
+                    </button>
+                </div>
 
             </aside>
 
-            <!-- 右侧：ECG 示波器 (Visual Output) -->
+            <!-- 右侧：ECG 示波器 -->
             <section class="flex-1 flex flex-col min-w-0">
                 <div class="flex-1 scope-screen rounded-2xl relative" ref="scopeContainer">
                     <!-- Canvas -->
                     <canvas ref="canvas" class="w-full h-full block z-0"></canvas>
                     
-                    <!-- 扫描线 (HTML Overlay) -->
+                    <!-- 扫描线 -->
                     <div class="scan-line" :style="{ left: scanX + 'px' }"></div>
 
-                    <!-- 屏幕上的 OSD 信息 -->
+                    <!-- OSD -->
                     <div class="absolute top-6 left-6 z-20 font-digital pointer-events-none select-none">
                         <div class="text-emerald-400 text-lg mb-1 tracking-wider">CH1 [ANALOG]</div>
                         <div class="flex flex-col gap-1 text-xs text-slate-400/80">
@@ -279,16 +281,18 @@
                         ⚠ NOISE DETECTED
                     </div>
                     
+                    <!-- 遮罩层 (休眠) -->
                     <div v-if="isSleeping" 
-                         class="absolute inset-0 flex items-center justify-center z-30 bg-black/60 backdrop-blur-sm">
+                         class="absolute inset-0 flex items-center justify-center z-30 bg-black/60 backdrop-blur-sm transition-all duration-500">
                         <div class="text-center">
                             <div class="text-blue-400 text-4xl font-bold mb-2">STANDBY</div>
                             <div class="text-blue-500/60 font-digital">ULTRA-LOW POWER MODE</div>
+                            <div class="text-blue-500/30 text-sm mt-4">Toggle Power Switch to Resume</div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- 底部图例/说明 -->
+                <!-- 底部图例 -->
                 <div class="mt-3 flex justify-between items-center px-2 text-slate-500 text-xs">
                     <div class="flex gap-4">
                         <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Signal</span>
@@ -301,7 +305,7 @@
     </div>
 
     <script>
-        // 简单的安全检查：如果Vue没有成功加载，移除v-cloak防止一直蓝屏
+        // 安全检查
         setTimeout(() => {
             if (typeof Vue === 'undefined') {
                 document.getElementById('app').removeAttribute('v-cloak');
@@ -309,7 +313,7 @@
             }
         }, 3000);
 
-        const { createApp, ref, computed, onMounted, onUnmounted, watch } = Vue;
+        const { createApp, ref, computed, onMounted, onUnmounted, watch, nextTick } = Vue;
 
         createApp({
             setup() {
@@ -345,7 +349,6 @@
                     if (isSleeping.value) return 0.1;
                     let p = 120 + (gain.value/1000) * 10; 
                     if (filterEnabled.value) p += 15;
-                    // 心率越高，功耗微增
                     p += (heartRate.value / 180) * 5;
                     return p.toFixed(1);
                 });
@@ -369,19 +372,14 @@
                             break;
                         case 'noise':
                             heartRate.value = 80;
-                            gain.value = 400; // 放大看噪声
-                            filterEnabled.value = false; // 关闭滤波
+                            gain.value = 400; 
+                            filterEnabled.value = false; 
                             hasInterference.value = true;
                             break;
                     }
                 };
 
-                // Update scenario to 'custom' if user touches sliders
-                watch([heartRate, gain, filterEnabled, hasInterference], () => {
-                    // 简单的去抖动逻辑或者是直接设为 custom
-                });
-                
-                // Clock
+                // Time update
                 setInterval(() => {
                     const now = new Date();
                     timeString.value = now.toLocaleTimeString('en-GB');
@@ -395,15 +393,13 @@
                 let ctx = null;
                 let animId = null;
                 let w = 0, h = 0;
-                
-                // Signal vars
                 let phase = 0;
                 let bufferY = []; 
 
                 const draw = () => {
                     if (!ctx) return;
                     
-                    const speed = 200; // px per second
+                    const speed = 200; 
                     const dt = 1/60;
                     const dx = speed * dt;
                     
@@ -425,50 +421,45 @@
                     // Calculate Signal
                     let val = 0;
                     if (!isSleeping.value) {
-                        // Phase update
                         const period = 60 / heartRate.value;
                         phase += dt / period;
                         if (phase >= 1.0) phase -= 1.0;
 
-                        // ECG Math
                         const g = (x, p, width, height) => {
                             let d = Math.abs(x - p);
                             if (d > 0.5) d = 1.0 - d;
                             return height * Math.exp(-Math.pow(d, 2) / (2 * width * width));
                         };
                         
-                        // P-Q-R-S-T
                         val += g(phase, 0.15, 0.02, 0.15);
                         val -= g(phase, 0.22, 0.005, 0.15);
-                        val += g(phase, 0.25, 0.005, 1.2); // R Peak
+                        val += g(phase, 0.25, 0.005, 1.2); 
                         val -= g(phase, 0.28, 0.005, 0.25);
                         val += g(phase, 0.45, 0.04, 0.20);
                         
-                        // Noise
                         const now = performance.now()/1000;
                         let noise = (Math.random()-0.5)*0.02;
                         
                         if (hasInterference.value) {
-                            noise += Math.sin(now * 50 * Math.PI * 2) * 0.1; // 50Hz strong
-                            if (Math.random() > 0.98) noise += (Math.random()-0.5)*0.2; // artifacts
+                            noise += Math.sin(now * 50 * Math.PI * 2) * 0.1; 
+                            if (Math.random() > 0.98) noise += (Math.random()-0.5)*0.2; 
                         }
 
                         if (filterEnabled.value) {
-                            noise *= 0.1; // Filter reduces noise
+                            noise *= 0.1; 
                         }
                         
                         val += noise;
                     }
 
                     // Map to Y
-                    const pxPerMv = 0.5; // base scale
+                    const pxPerMv = 0.5; 
                     const amplitude = val * gain.value * pxPerMv;
                     const y = (h / 2) - amplitude;
 
                     // Draw Line
                     ctx.beginPath();
-                    // 动态颜色：根据信号质量
-                    ctx.strokeStyle = hasInterference.value && !filterEnabled.value ? '#fb7185' : '#10b981'; // Rose or Emerald
+                    ctx.strokeStyle = hasInterference.value && !filterEnabled.value ? '#fb7185' : '#10b981';
                     ctx.lineWidth = filterEnabled.value ? 2 : 1;
                     ctx.shadowBlur = filterEnabled.value ? 4 : 0;
                     ctx.shadowColor = ctx.strokeStyle;
@@ -483,9 +474,8 @@
                         ctx.moveTo(scanX.value, y);
                     }
                     ctx.stroke();
-                    ctx.shadowBlur = 0; // reset
+                    ctx.shadowBlur = 0; 
 
-                    // Buffer
                     const startI = Math.floor(prevX);
                     const endI = Math.floor(scanX.value);
                     for(let i=startI; i<=endI; i++) {
@@ -499,6 +489,10 @@
                     if (scopeContainer.value && canvas.value) {
                         w = scopeContainer.value.clientWidth;
                         h = scopeContainer.value.clientHeight;
+                        
+                        // Fix for initially 0 width
+                        if (w === 0 || h === 0) return;
+
                         canvas.value.width = w;
                         canvas.value.height = h;
                         bufferY = new Array(w).fill(h/2);
@@ -509,8 +503,12 @@
                 onMounted(() => {
                     ctx = canvas.value.getContext('2d');
                     window.addEventListener('resize', resize);
-                    resize();
-                    animId = requestAnimationFrame(draw);
+                    
+                    // 关键修复：延迟初始化，确保DOM尺寸已就绪
+                    setTimeout(() => {
+                        resize();
+                        animId = requestAnimationFrame(draw);
+                    }, 50); // 50ms 延时足够让浏览器完成首次 Layout
                 });
 
                 onUnmounted(() => {
@@ -519,18 +517,14 @@
                 });
 
                 return {
-                    // State
                     heartRate, gain, isSleeping, filterEnabled, hasInterference, 
                     scenarios, currentScenario, timeString,
-                    // Computed
                     heartStatusText, heartStatusColor, powerConsumption,
-                    // Refs
                     canvas, scopeContainer, scanX,
-                    // Methods
                     applyScenario
                 };
             }
-        }).mount('#app'); // 确保这里挂载了
+        }).mount('#app');
     </script>
 </body>
 </html>
