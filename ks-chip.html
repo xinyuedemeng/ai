@@ -3,7 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- SEO Optimization -->
     <title>芯森微电子 - 高精度心电脑电芯片 | 感知世界 赋能智慧物联</title>
+    <meta name="description" content="深圳芯森微电子(Hexsense)是一家专注于高精度微弱信号传感芯片设计与方案开发的创新企业。提供高性能脑电芯片(EEG)、心电芯片(ECG)及生物传感模组，赋能穿戴医疗、脑机接口与智慧健康。">
+    <meta name="keywords" content="芯森微, Hexsense, 脑电芯片, 心电芯片, 传感模组, 生物电信号, EEG, ECG, 穿戴医疗, 脑机接口, 深圳芯森微电子">
+    <meta name="author" content="芯森微电子 Hexsense Microelectronics">
+    <!-- External SEO Address (Canonical) -->
+    <link rel="canonical" href="http://www.ks-chip.com/mobile/index.html">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -91,9 +99,7 @@
             <div class="flex items-center justify-between h-20">
                 <!-- Logo -->
                 <div class="flex-shrink-0 flex items-center gap-2 cursor-pointer group">
-                    <div class="w-10 h-10 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg flex items-center justify-center transform group-hover:rotate-12 transition-transform">
-                        <span class="text-xl font-bold text-white">XS</span>
-                    </div>
+                    <img src="http://www.ks-chip.com/templates/mobile/images/logo.jpg" alt="芯森微电子 Hexsense Logo" class="h-10 w-auto object-contain bg-white/10 rounded p-0.5">
                     <div class="flex flex-col">
                         <span class="text-xl font-bold tracking-wider group-hover:text-cyan-400 transition-colors">HEXSENSE</span>
                         <span class="text-xs text-gray-300 tracking-widest group-hover:text-white transition-colors">芯森微电子</span>
@@ -108,6 +114,10 @@
                         <a href="#solutions" class="px-3 py-2 rounded-md text-sm font-medium hover:text-cyan-400 transition-colors">解决方案</a>
                         <a href="#news" class="px-3 py-2 rounded-md text-sm font-medium hover:text-cyan-400 transition-colors">新闻资讯</a>
                         <a href="#about" class="px-3 py-2 rounded-md text-sm font-medium hover:text-cyan-400 transition-colors">关于芯森</a>
+                        <!-- 新增：官方商城入口 (Navbar) -->
+                        <a href="https://m.tb.cn/h.71d2EY1ZTCZRFFu" target="_blank" class="px-3 py-2 rounded-md text-sm font-bold text-orange-400 hover:text-orange-300 flex items-center gap-1">
+                            <i class="fas fa-shopping-bag"></i> 官方商城
+                        </a>
                     </div>
                 </div>
 
@@ -134,6 +144,10 @@
                 <a href="#products" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-700">产品中心</a>
                 <a href="#solutions" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-700">解决方案</a>
                 <a href="#news" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-700">新闻资讯</a>
+                <!-- 新增：官方商城入口 (Mobile Menu) -->
+                <a href="https://m.tb.cn/h.71d2EY1ZTCZRFFu" target="_blank" class="block px-3 py-2 rounded-md text-base font-bold text-orange-400 hover:text-orange-300 hover:bg-gray-700">
+                    <i class="fas fa-shopping-cart mr-2"></i>官方商城
+                </a>
             </div>
         </div>
     </nav>
@@ -206,6 +220,44 @@
             <i class="fas fa-chevron-down text-2xl"></i>
         </div>
     </header>
+
+    <!-- 新增：右侧悬浮电商入口 (Floating Action Widget) -->
+    <div class="fixed right-4 top-1/2 transform -translate-y-1/2 z-40 hidden md:flex flex-col gap-4">
+        <!-- Taobao Store Button -->
+        <div class="group relative">
+            <a href="https://m.tb.cn/h.71d2EY1ZTCZRFFu" target="_blank" class="flex flex-col items-center justify-center w-14 h-14 bg-gradient-to-br from-orange-500 to-red-600 text-white rounded-full shadow-lg hover:scale-110 transition-transform duration-300 border-2 border-white/20">
+                <i class="fas fa-shopping-cart text-xl"></i>
+                <span class="text-[10px] font-bold mt-0.5">商城</span>
+            </a>
+            
+            <!-- Hover Card: QR Code Display -->
+            <div class="absolute right-full top-0 mr-4 w-64 bg-white rounded-xl shadow-2xl p-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform translate-x-4 group-hover:translate-x-0 border border-gray-100">
+                <div class="text-center">
+                    <h4 class="font-bold text-gray-900 mb-2 flex items-center justify-center gap-2">
+                        <i class="fas fa-store text-orange-500"></i> 芯森微官方淘宝店
+                    </h4>
+                    <!-- 淘宝店扫描图片容器 -->
+                    <div class="bg-gray-100 rounded-lg p-2 mb-3 relative overflow-hidden group/img">
+                        <!-- 这里使用的是生成的二维码作为预览，请将 src 替换为您上传的图片路径: images/芯森微淘宝_20251209162620_48_74.jpg -->
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://m.tb.cn/h.71d2EY1ZTCZRFFu" 
+                             alt="淘宝店扫描图片" 
+                             class="w-full h-auto rounded object-contain">
+                        
+                        <!-- 提示蒙层 -->
+                        <div class="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity">
+                            <span class="text-white text-xs font-bold">扫码进店购买</span>
+                        </div>
+                    </div>
+                    <a href="https://m.tb.cn/h.71d2EY1ZTCZRFFu" target="_blank" class="block w-full py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white text-sm font-bold rounded-full hover:shadow-lg hover:shadow-orange-500/30 transition-all">
+                        点击直接访问
+                    </a>
+                    <p class="text-xs text-gray-400 mt-2">正品保障 · 技术支持</p>
+                </div>
+                <!-- Arrow -->
+                <div class="absolute top-5 -right-2 w-4 h-4 bg-white transform rotate-45 border-t border-r border-gray-100"></div>
+            </div>
+        </div>
+    </div>
 
     <!-- 产品中心 -->
     <section id="products" class="py-24 bg-gray-50 relative">
@@ -431,8 +483,7 @@
                 <!-- Company Info -->
                 <div class="lg:col-span-2">
                     <div class="flex items-center gap-2 mb-6">
-                         <div class="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white font-bold">XS</div>
-                         <span class="text-xl font-bold text-white tracking-wider">HEXSENSE</span>
+                         <img src="http://www.ks-chip.com/templates/mobile/images/logo.jpg" alt="Hexsense Logo" class="h-8 w-auto bg-white rounded p-0.5">                         
                     </div>
                     <p class="text-sm leading-relaxed mb-6 text-gray-400">
                         芯森微电子致力于为全球客户提供高性能、低功耗的生物电信号处理芯片及系统解决方案。用芯感知，智慧物联。
