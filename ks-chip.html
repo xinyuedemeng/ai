@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>芯森微 - 高精度心电脑电芯片</title>
+    <meta name="description" content="芯森微专注于高精度心电脑电芯片设计，提供医疗级生物电信号采集与分析芯片，应用于智能穿戴、远程医疗、健康监测等领域。">
+    <meta name="keywords" content="心电芯片,脑电芯片,肌电芯片,生物电信号,医疗芯片,健康监测,远程医疗,智能穿戴">
+    <meta name="author" content="芯森微">
+    <meta name="robots" content="index, follow">
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://www.ks-chip.com/">
+    <meta property="og:title" content="芯森微 - 高精度心电脑电芯片">
+    <meta property="og:description" content="芯森微专注于高精度心电脑电芯片设计，提供医疗级生物电信号采集与分析芯片，应用于智能穿戴、远程医疗、健康监测等领域。">
+    <meta property="og:image" content="https://www.ks-chip.com/images/og-image.png">
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://www.ks-chip.com/">
+    <meta property="twitter:title" content="芯森微 - 高精度心电脑电芯片">
+    <meta property="twitter:description" content="芯森微专注于高精度心电脑电芯片设计，提供医疗级生物电信号采集与分析芯片，应用于智能穿戴、远程医疗、健康监测等领域。">
+    <meta property="twitter:image" content="https://www.ks-chip.com/images/twitter-image.png">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="sitemap" type="application/xml" href="/sitemap.xml">
+    <link rel="preconnect" href="https://www.google-analytics.com">
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" as="style">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" as="style">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #f1f5f9;
+            overflow-x: hidden;
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+        }
+        .glass-dark {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .btn-primary {
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            color: white;
+            padding: 12px 28px;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
+        }
+        .btn-secondary {
+            background: transparent;
+            color: #cbd5e1;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 12px 28px;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        .section-padding {
+            padding: 5rem 1.5rem;
+        }
+        @media (min-width: 768px) {
+            .section-padding {
+                padding: 6rem 2rem;
+            }
+        }
+        @media (min-width: 1024px) {
+            .section-padding {
+                padding: 8rem 3rem;
+            }
+        }
+        .feature-card {
+            transition: transform 0.4s ease, box-shadow 0.4s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        .hero-gradient {
+            background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.15), transparent 50%),
+                        radial-gradient(circle at bottom left, rgba(139, 92, 246, 0.15), transparent 50%);
+        }
+        .chip-icon {
+            filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.7));
+        }
+        .nav-link {
+            position: relative;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #3b82f6;
+            transition: width 0.3s ease;
+        }
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        .animate-pulse-slow {
+            animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .scroll-smooth {
+            scroll-behavior: smooth;
+        }
+    </style>
+    <link rel="canonical" href="https://www.ks-chip.com" />
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "芯森微",
+      "url": "https://www.ks-chip.com",
+      "logo": "https://www.ks-chip.com/logo.png",
+      "description": "高精度心电脑电芯片设计公司",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "深圳市坪山新区金辉路14号生物医药创新产业园401",
+        "addressLocality": "深圳",
+        "addressRegion": "广东",
+        "postalCode": "518118",
+        "addressCountry": "CN"
+      },
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "telephone": "18320926680",
+        "contactType": "Customer Service",
+        "email": "hello@ks-chip.com"
+      }
+    }
+    </script>
+</head>
+<body class="scroll-smooth">
+    <!-- 顶部导航栏 -->
+    <header class="sticky top-0 z-50 glass-dark py-4 px-6 md:px-12">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="#" class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                    <i class="fas fa-microchip text-white text-xl"></i>
+                </div>
+                <span class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-300">芯森微</span>
+            </a>
+            <!-- 桌面导航 -->
+            <nav class="hidden md:flex space-x-10">
+                <a href="#home" class="nav-link text-gray-300 hover:text-white font-medium">首页</a>
+                <a href="#about" class="nav-link text-gray-300 hover:text-white font-medium">关于我们</a>
+                <a href="#products" class="nav-link text-gray-300 hover:text-white font-medium">产品方案</a>
+                <a href="#tech" class="nav-link text-gray-300 hover:text-white font-medium">技术优势</a>
+                <a href="#applications" class="nav-link text-gray-300 hover:text-white font-medium">应用场景</a>
+                <a href="#contact" class="nav-link text-gray-300 hover:text-white font-medium">联系我们</a>
+            </nav>
+            <div class="hidden md:flex items-center space-x-6">
+                <button class="btn-secondary">登录</button>
+                <button class="btn-primary">免费试用</button>
+            </div>
+            <!-- 移动端菜单按钮 -->
+            <button id="mobile-menu-button" class="md:hidden text-gray-300 hover:text-white focus:outline-none">
+                <i class="fas fa-bars text-2xl"></i>
+            </button>
+        </div>
+        <!-- 移动端菜单 -->
+        <div id="mobile-menu" class="md:hidden glass mt-4 py-4 px-6 rounded-xl hidden">
+            <div class="flex flex-col space-y-4">
+                <a href="#home" class="text-gray-300 hover:text-white font-medium py-2">首页</a>
+                <a href="#about" class="text-gray-300 hover:text-white font-medium py-2">关于我们</a>
+                <a href="#products" class="text-gray-300 hover:text-white font-medium py-2">产品方案</a>
+                <a href="#tech" class="text-gray-300 hover:text-white font-medium py-2">技术优势</a>
+                <a href="#applications" class="text-gray-300 hover:text-white font-medium py-2">应用场景</a>
+                <a href="#contact" class="text-gray-300 hover:text-white font-medium py-2">联系我们</a>
+                <div class="pt-4 border-t border-gray-700 flex flex-col space-y-3">
+                    <button class="btn-secondary w-full">登录</button>
+                    <button class="btn-primary w-full">免费试用</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- 英雄区域 -->
+        <section id="home" class="section-padding hero-gradient">
+            <div class="container mx-auto max-w-6xl">
+                <div class="flex flex-col lg:flex-row items-center">
+                    <div class="lg:w-1/2 mb-12 lg:mb-0">
+                        <h1 class="text-4xl md:text-6xl font-bold leading-tight mb-6">
+                            高精度
+                            <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-300">心电脑电芯片</span>
+                            ，重新定义医疗健康
+                        </h1>
+                        <p class="text-xl text-gray-300 mb-10">
+                            芯森微自主研发的医疗级芯片，提供超低功耗、超高精度的生物电信号采集与分析，助力智能穿戴、远程医疗、健康监测等领域实现突破。
+                        </p>
+                        <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6">
+                            <button class="btn-primary inline-flex items-center justify-center">
+                                <span>立即咨询</span>
+                                <i class="fas fa-arrow-right ml-3"></i>
+                            </button>
+                            <button class="btn-secondary inline-flex items-center justify-center">
+                                <i class="fas fa-play-circle mr-3"></i>
+                                <span>观看介绍视频</span>
+                            </button>
+                        </div>
+                        <div class="mt-12 grid grid-cols-2 md:grid-cols-3 gap-6">
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-blue-300">>99.9%</div>
+                                <div class="text-gray-400">信号准确率</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-purple-300">≤10μW</div>
+                                <div class="text-gray-400">超低功耗</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-green-300">24/7</div>
+                                <div class="text-gray-400">连续监测</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="lg:w-1/2 flex justify-center">
+                        <div class="relative">
+                            <div class="glass p-8 rounded-3xl shadow-2xl max-w-md">
+                                <div class="w-64 h-64 md:w-80 md:h-80 rounded-full mx-auto bg-gradient-to-br from-blue-900 to-purple-900 flex items-center justify-center animate-float">
+                                    <i class="fas fa-microchip chip-icon text-blue-300 text-9xl"></i>
+                                </div>
+                                <div class="mt-8 text-center">
+                                    <h3 class="text-2xl font-bold mb-4">芯片架构示意图</h3>
+                                    <p class="text-gray-300">集成多通道ADC、DSP核和无线模块，支持实时信号处理与传输。</p>
+                                </div>
+                            </div>
+                            <div class="absolute -top-4 -right-4 w-24 h-24 rounded-full bg-purple-500 opacity-20 animate-pulse-slow"></div>
+                            <div class="absolute -bottom-4 -left-4 w-32 h-32 rounded-full bg-blue-500 opacity-20 animate-pulse-slow" style="animation-delay: 1s;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 关于我们 -->
+        <section id="about" class="section-padding bg-gradient-to-b from-gray-900 to-gray-800">
+            <div class="container mx-auto max-w-6xl">
+                <div class="text-center mb-16">
+                    <h2 class="text-4xl md:text-5xl font-bold mb-6">关于<span class="text-blue-300">芯森微</span></h2>
+                    <p class="text-xl text-gray-300 max-w-3xl mx-auto">我们是一家专注于医疗电子芯片设计的高科技企业，致力于通过创新芯片技术提升人类健康管理水平。</p>
+                </div>
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <div class="glass p-8 rounded-2xl feature-card text-center">
+                        <div class="w-16 h-16 rounded-full bg-blue-900 flex items-center justify-center mx-auto mb-6">
+                            <i class="fas fa-bullseye text-3xl text-blue-300"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-4">使命</h3>
+                        <p class="text-gray-300">让高精度健康监测无处不在，赋能每一台医疗设备。</p>
+                    </div>
+                    <div class="glass p-8 rounded-2xl feature-card text-center">
+                        <div class="w-16 h-16 rounded-full bg-purple-900 flex items-center justify-center mx-auto mb-6">
+                            <i class="fas fa-eye text-3xl text-purple-300"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-4">愿景</h3>
+                        <p class="text-gray-300">成为全球领先的生物电信号芯片供应商。</p>
+                    </div>
+                    <div class="glass p-8 rounded-2xl feature-card text-center">
+                        <div class="w-16 h-16 rounded-full bg-green-900 flex items-center justify-center mx-auto mb-6">
+                            <i class="fas fa-handshake text-3xl text-green-300"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-4">价值观</h3>
+                        <p class="text-gray-300">创新、精准、协作、责任。</p>
+                    </div>
+                    <div class="glass p-8 rounded-2xl feature-card text-center">
+                        <div class="w-16 h-16 rounded-full bg-yellow-900 flex items-center justify-center mx-auto mb-6">
+                            <i class="fas fa-award text-3xl text-yellow-300"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-4">认证</h3>
+                        <p class="text-gray-300">ISO 13485医疗质量管理体系认证。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 产品方案 -->
+        <section id="products" class="section-padding">
+            <div class="container mx-auto max-w-6xl">
+                <div class="text-center mb-16">
+                    <h2 class="text-4xl md:text-5xl font-bold mb-6">产品<span class="text-purple-300">方案</span></h2>
+                    <p class="text-xl text-gray-300 max-w-3xl mx-auto">我们提供全系列芯片及模组，满足从消费级到医疗级的各种应用需求。</p>
+                </div>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div class="glass p-8 rounded-2xl feature-card">
+                        <div class="w-12 h-12 rounded-lg bg-blue-900 flex items-center justify-center mb-6">
+                            <i class="fas fa-heartbeat text-2xl text-blue-300"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-4">CSW‑ECG100</h3>
+                        <p class="text-gray-300 mb-6">单导联心电芯片，适用于智能手环、贴片等可穿戴设备，功耗低于15μW。</p>
+                        <a href="#" class="text-blue-300 font-medium inline-flex items-center">了解更多 <i class="fas fa-arrow-right ml-2"></i></a>
+                    </div>
+                    <div class="glass p-8 rounded-2xl feature-card">
+                        <div class="w-12 h-12 rounded-lg bg-purple-900 flex items-center justify-center mb-6">
+                            <i class="fas fa-brain text-2xl text-purple-300"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-4">CSW‑EEG200</h3>
+                        <p class="text-gray-300 mb-6">多通道脑电芯片，支持8‑32通道，集成数字滤波与运动伪影消除。</p>
+                        <a href="#" class="text-blue-300 font-medium inline-flex items-center">了解更多 <i class="fas fa-arrow-right ml-2"></i></a>
+                    </div>
+                    <div class="glass p-8 rounded-2xl feature-card">
+                        <div class="w-12 h-12 rounded-lg bg-green-900 flex items-center justify-center mb-6">
+                            <i class="fas fa-lungs text-2xl text-green-300"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-4">CSW‑EMG300</h3>
+                        <p class="text-gray-300 mb-6">肌电信号采集芯片，专为康复机器人与运动分析设计。</p>
+                        <a href="#" class="text-blue-300 font-medium inline-flex items-center">了解更多 <i class="fas fa-arrow-right ml-2"></i></a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 技术优势 -->
+        <section id="tech" class="section-padding bg-gradient-to-b from-gray-800 to-gray-900">
+            <div class="container mx-auto max-w-6xl">
+                <div class="text-center mb-16">
+                    <h2 class="text-4xl md:text-5xl font-bold mb-6">技术<span class="text-green-300">优势</span></h2>
+                    <p class="text-xl text-gray-300 max-w-3xl mx-auto">我们拥有多项核心专利，在信号处理、低功耗设计、集成度等方面处于行业领先。</p>
+                </div>
+                <div class="grid md:grid-cols-2 gap-12">
+                    <div class="glass p-8 rounded-2xl">
+                        <div class="flex items-center mb-6">
+                            <div class="w-14 h-14 rounded-full bg-blue-900 flex items-center justify-center mr-6">
+                                <i class="fas fa-wave-square text-2xl text-blue-300"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold">自适应降噪算法</h3>
+                        </div>
+                        <p class="text-gray-300">采用深度学习驱动的实时降噪，即使在运动状态下也能提取纯净生物电信号，信噪比提升40%以上。</p>
+                    </div>
+                    <div class="glass p-8 rounded-2xl">
+                        <div class="flex items-center mb-6">
+                            <div class="w-14 h-14 rounded-full bg-purple-900 flex items-center justify-center mr-6">
+                                <i class="fas fa-battery-three-quarters text-2xl text-purple-300"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold">超低功耗设计</h3>
+                        </div>
+                        <p class="text-gray-300">创新的电源管理架构，待机功耗低至1μW，支持纽扣电池连续工作30天以上。</p>
+                    </div>
+                    <div class="glass p-8 rounded-2xl">
+                        <div class="flex items-center mb-6">
+                            <div class="w-14 h-14 rounded-full bg-green-900 flex items-center justify-center mr-6">
+                                <i class="fas fa-microchip text-2xl text-green-300"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold">高集成度SoC</h3>
+                        </div>
+                        <p class="text-gray-300">单芯片集成模拟前端、ADC、DSP、无线通信，减少外部元件，降低整体BOM成本30%。</p>
+                    </div>
+                    <div class="glass p-8 rounded-2xl">
+                        <div class="flex items-center mb-6">
+                            <div class="w-14 h-14 rounded-full bg-yellow-900 flex items-center justify-center mr-6">
+                                <i class="fas fa-shield-alt text-2xl text-yellow-300"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold">医疗级安全</h3>
+                        </div>
+                        <p class="text-gray-300">内置硬件加密与安全启动，符合HIPAA、GDPR等数据隐私规范，确保患者数据安全。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 应用场景 -->
+        <section id="applications" class="section-padding">
+            <div class="container mx-auto max-w-6xl">
+                <div class="text-center mb-16">
+                    <h2 class="text-4xl md:text-5xl font-bold mb-6">应用<span class="text-yellow-300">场景</span></h2>
+                    <p class="text-xl text-gray-300 max-w-3xl mx-auto">我们的芯片已广泛应用于多个领域，为健康管理、疾病诊断、康复治疗提供核心硬件支持。</p>
+                </div>
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="glass p-6 rounded-2xl text-center feature-card">
+                        <div class="w-20 h-20 rounded-full bg-blue-900/30 flex items-center justify-center mx-auto mb-6">
+                            <i class="fas fa-watch text-3xl text-blue-300"></i>
+                        </div>
+                        <h4 class="text-xl font-bold mb-3">智能穿戴</h4>
+                        <p class="text-gray-300">心率、血氧、心电图连续监测。</p>
+                    </div>
+                    <div class="glass p-6 rounded-2xl text-center feature-card">
+                        <div class="w-20 h-20 rounded-full bg-purple-900/30 flex items-center justify-center mx-auto mb-6">
+                            <i class="fas fa-hospital text-3xl text-purple-300"></i>
+                        </div>
+                        <h4 class="text-xl font-bold mb-3">远程医疗</h4>
+                        <p class="text-gray-300">家庭监护、慢病管理、远程会诊。</p>
+                    </div>
+                    <div class="glass p-6 rounded-2xl text-center feature-card">
+                        <div class="w-20 h-20 rounded-full bg-green-900/30 flex items-center justify-center mx-auto mb-6">
+                            <i class="fas fa-robot text-3xl text-green-300"></i>
+                        </div>
+                        <h4 class="text-xl font-bold mb-3">康复机器人</h4>
+                        <p class="text-gray-300">肌电控制、运动功能重建。</p>
+                    </div>
+                    <div class="glass p-6 rounded-2xl text-center feature-card">
+                        <div class="w-20 h-20 rounded-full bg-yellow-900/30 flex items-center justify-center mx-auto mb-6">
+                            <i class="fas fa-flask text-3xl text-yellow-300"></i>
+                        </div>
+                        <h4 class="text-xl font-bold mb-3">科研设备</h4>
+                        <p class="text-gray-300">神经科学、心理学实验采集。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA -->
+        <section class="section-padding bg-gradient-to-r from-blue-900/30 to-purple-900/30">
+            <div class="container mx-auto max-w-4xl text-center">
+                <h2 class="text-4xl md:text-5xl font-bold mb-8">开启高精度健康监测新时代</h2>
+                <p class="text-xl text-gray-300 mb-10 max-w-2xl mx-auto">联系我们，获取芯片样品、技术文档或定制方案咨询。</p>
+                <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-6">
+                    <button class="btn-primary px-10 py-4 text-lg">获取样品</button>
+                    <button class="btn-secondary px-10 py-4 text-lg">下载技术白皮书</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 底部 -->
+    <footer id="contact" class="bg-gray-900 pt-12 pb-8 px-6">
+        <div class="container mx-auto max-w-6xl">
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
+                <div>
+                    <a href="#" class="flex items-center space-x-3 mb-6">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                            <i class="fas fa-microchip text-white text-xl"></i>
+                        </div>
+                        <span class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-300">芯森微</span>
+                    </a>
+                    <p class="text-gray-400">致力于高精度生物电芯片设计，推动医疗健康产业智能化。</p>
+                    <div class="flex space-x-4 mt-6">
+                        <a href="#" class="w-10 h-10 rounded-full glass flex items-center justify-center hover:bg-blue-500 transition"><i class="fab fa-weibo"></i></a>
+                        <a href="#" class="w-10 h-10 rounded-full glass flex items-center justify-center hover:bg-green-500 transition"><i class="fab fa-weixin"></i></a>
+                        <a href="#" class="w-10 h-10 rounded-full glass flex items-center justify-center hover:bg-blue-400 transition"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" class="w-10 h-10 rounded-full glass flex items-center justify-center hover:bg-gray-800 transition"><i class="fab fa-github"></i></a>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="text-xl font-bold mb-6">产品系列</h4>
+                    <ul class="space-y-3">
+                        <li><a href="#" class="text-gray-400 hover:text-blue-300 transition">心电芯片</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-blue-300 transition">脑电芯片</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-blue-300 transition">肌电芯片</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-blue-300 transition">模组与开发板</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-xl font-bold mb-6">技术支持</h4>
+                    <ul class="space-y-3">
+                        <li><a href="#" class="text-gray-400 hover:text-blue-300 transition">文档中心</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-blue-300 transition">常见问题</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-blue-300 transition">开发者论坛</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-blue-300 transition">联系我们</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-xl font-bold mb-6">联系我们</h4>
+                    <ul class="space-y-4">
+                        <li class="flex items-center text-gray-400">
+                            <i class="fas fa-map-marker-alt mr-4 text-blue-300"></i>
+                            <span>深圳市坪山新区金辉路14号生物医药创新产业园401</span>
+                        </li>
+                        <li class="flex items-center text-gray-400">
+                            <i class="fas fa-phone mr-4 text-blue-300"></i>
+                            <span>18320926680</span>
+                        </li>
+                        <li class="flex items-center text-gray-400">
+                            <i class="fas fa-envelope mr-4 text-blue-300"></i>
+                            <span>hello@ks-chip.com</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 pt-8 text-center text-gray-500">
+                <p>© 2025 芯森微 版权所有 备案号：粤ICP备20019375号 | 技术支持：万广互联</p>
+                <p class="mt-2 text-sm">本网站内容仅供参考，产品规格可能随时更改，恕不另行通知。</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 移动端菜单切换
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+            // 切换图标
+            const icon = mobileMenuButton.querySelector('i');
+            if (icon.classList.contains('fa-bars')) {
+                icon.classList.replace('fa-bars', 'fa-times');
+            } else {
+                icon.classList.replace('fa-times', 'fa-bars');
+            }
+        });
+
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                const href = this.getAttribute('href');
+                if (href === '#') return;
+                e.preventDefault();
+                const target = document.querySelector(href);
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                    // 移动端菜单关闭
+                    if (!mobileMenu.classList.contains('hidden')) {
+                        mobileMenu.classList.add('hidden');
+                        mobileMenuButton.querySelector('i').classList.replace('fa-times', 'fa-bars');
+                    }
+                }
+            });
+        });
+
+        // 玻璃拟态效果增强（滚动时改变透明度）
+        window.addEventListener('scroll', () => {
+            const header = document.querySelector('header');
+            if (window.scrollY > 50) {
+                header.classList.add('glass-dark');
+                header.classList.remove('glass');
+            } else {
+                header.classList.remove('glass-dark');
+                header.classList.add('glass');
+            }
+        });
+
+        // 卡片悬停效果增强
+        const cards = document.querySelectorAll('.feature-card');
+        cards.forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-10px) scale(1.02)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+
+        // 按钮点击动画
+        const buttons = document.querySelectorAll('button');
+        buttons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                // 添加涟漪效果
+                const ripple = document.createElement('span');
+                const rect = this.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                const x = e.clientX - rect.left - size / 2;
+                const y = e.clientY - rect.top - size / 2;
+                ripple.style.cssText = `
+                    position: absolute;
+                    border-radius: 50%;
+                    background: rgba(255, 255, 255, 0.7);
+                    transform: scale(0);
+                    animation: ripple-animation 0.6s linear;
+                    width: ${size}px;
+                    height: ${size}px;
+                    top: ${y}px;
+                    left: ${x}px;
+                    pointer-events: none;
+                `;
+                this.appendChild(ripple);
+                setTimeout(() => ripple.remove(), 600);
+            });
+        });
+
+        // 添加CSS动画
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes ripple-animation {
+                to {
+                    transform: scale(4);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // 控制台欢迎信息
+        console.log('%c🚀 欢迎来到芯森微官网！', 'color: #3b82f6; font-size: 18px; font-weight: bold;');
+        console.log('%c芯片改变健康，科技赋能未来。', 'color: #8b5cf6; font-size: 14px;');
+    </script>
+</body>
+</html>
